@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>対訳アラインメント</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 2em; background-color: #f9f9f9; }
+        .container { max-width: 700px; margin: auto; padding: 2.5em; border: 1px solid #ddd; border-radius: 12px; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        /* (変更 2/2) 画面上のタイトル */
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 0.5em; color: #333; }
+        .form-group { margin-bottom: 1.5em; }
+        label { display: block; margin-bottom: 0.7em; font-weight: 600; color: #555; }
+        input[type="file"] { 
+            display: block; 
+            width: 100%; 
+            padding: 0.7em; 
+            border: 1px solid #ccc; 
+            border-radius: 6px;
+            box-sizing: border-box; /* paddingを含めてwidth 100%にする */
+        }
+        button { background-color: #007bff; color: white; padding: 0.8em 1.8em; border: none; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: 500; transition: background-color 0.2s; }
+        button:hover { background-color: #0056b3; }
+        .error { color: #D8000C; background-color: #FFD2D2; border: 1px solid #D8000C; padding: 1em; border-radius: 6px; margin-top: 1.5em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>対訳アラインメント</h2>
+        <p>一太郎（日本語）とWord（英語）の対訳ファイルをアップロードしてください。</p>
+        
+        <div th:if="${errorMessage}" class="error">
+            <p th:text="${errorMessage}">エラーメッセージがここに表示されます。</p>
+        </div>
+
+        <form method="POST" action="/align" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="jtdFile">1. 一太郎ファイル (.jtd) - 日本語:</label>
+                <input type="file" id="jtdFile" name="jtdFile" accept=".jtd" required>
+            </div>
+            <div class="form-group">
+                <label for="docFile">2. Wordファイル (.docx) - 英語:</label>
+                <input type="file" id="docFile" name="docFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+            </div>
+            <button type="submit">アラインメント実行</button>
+        </form>
+    </div>
+</body>
+</html>

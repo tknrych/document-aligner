@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>対訳アラインメント - 結果</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 2em; background-color: #f9f9f9; }
+        .container { max-width: 90%; margin: auto; }
+
+        h1 {
+            text-align: center;
+            padding-bottom: 10px;
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 1em;
+        }
+
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 0.5em; color: #333; }
+        .file-info { background-color: #eef; border: 1px solid #cce; padding: 1em; border-radius: 8px; margin-bottom: 1.5em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #ddd; text-align: left; }
+
+        /* (★修正 1/2) 不要な nth-child ルールを削除 */
+        /* th:nth-child(1), td:nth-child(1) { width: 50%; background-color: #fff; } */
+        /* th:nth-child(2), td:nth-child(2) { width: 50%; background-color: #fff; } */
+
+        /* テーブルヘッダー (th) のスタイル (網掛けを含む) */
+        th {
+            background-color: #e9ecef;
+            font-weight: 600;
+            padding: 1em;
+            width: 50%; /* <-- 幅指定はこちらに移動 */
+        }
+
+        td {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 1.1em;
+            padding: 10px 12px;
+            vertical-align: top;
+            width: 50%; /* <-- 幅指定はこちらに移動 */
+            background-color: #fff; /* <-- 背景色を明示的に指定 */
+        }
+
+        tr:nth-child(even) td { background-color: #fdfdfd; }
+
+        .button-container { display: flex; gap: 1em; margin-top: 2em; }
+        .back-link { display: inline-block; padding: 0.7em 1.5em; background-color: #6c757d; color: white; text-decoration: none; border-radius: 6px; transition: background-color 0.2s; }
+        .back-link:hover { background-color: #5a6268; }
+        .save-button { display: inline-block; padding: 0.7em 1.5em; background-color: #28a745; color: white; text-decoration: none; border-radius: 6px; border: none; cursor: pointer; font-size: 1em; transition: background-color 0.2s; }
+        .save-button:hover { background-color: #218838; }
+
+        td.article-title {
+            font-size: 1.05em;
+        }
+        td.list-item {
+            padding-left: 2.5em;
+            text-indent: -1.5em;
+        }
+        /* .paragraph クラスは特にスタイル不要 */
+
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h2>対訳アラインメント結果</h2>
+
+        <div class="file-info">
+            <strong>日本語 (JTD):</strong> <span id="jtdFileName" th:text="${jtdFileName}">sample.jtd</span><br>
+            <strong>英語 (Word):</strong> <span id="docFileName" th:text="${docFileName}">sample.docx</span>
+        </div>
+
+        <th:block th:if="${not #lists.isEmpty(alignmentResult)}" th:with="firstPair=${alignmentResult[0]}">
+            <h1 th:text="${#strings.trim(firstPair.japanese)}">
+                （ここに条約のタイトルが自動的に入ります）
+            </h1>
+        </th:block>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>日本語（一太郎）</th>
+                    <th>英語（Word）</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="pair : ${alignmentResult}">
+
+                    <td th:with="jpText=${#strings.trim(pair.japanese)}"
+                        th:classappend="${jpText.startsWith('（') or jpText.startsWith('(') ? 'list-item' : (jpText.matches('^第.*条.*') ? 'article-title' : '')}"
+                        th:text="${jpText}">
+                    </td>
+
+                    <td th:with="enText=${#strings.trim(pair.english)}"
+                        th:classappend="${enText.startsWith('(') ? 'list-item' : (enText.matches('^Article [0-9]+.*') ? 'article-title' : '')}"
+                        th:text="${enText}">
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(alignmentResult)}">
+                    <td colspan="2" style="text-align: center;">抽出またはアラインメントの結果がありません。</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="button-container">
+            <a href="/" class="back-link">« 別のファイルで試す</a>
+            <button id="saveButton" class="save-button">このHTMLを保存</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('saveButton').addEventListener('click', function() {
+            const buttonContainer = document.querySelector('.button-container');
+            const originalDisplay = buttonContainer.style.display;
+            buttonContainer.style.display = 'none';
+
+            const htmlContent = document.documentElement.outerHTML;
+
+            buttonContainer.style.display = originalDisplay;
+
+            const jtdFile = document.getElementById('jtdFileName').textContent || 'jp_file';
+            const docFile = document.getElementById('docFileName').textContent || 'en_file';
+            const filename = `Alignment-${jtdFile}-${docFile}.html`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-t' });
+
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        });
+    </script>
+</body>
+</html>
